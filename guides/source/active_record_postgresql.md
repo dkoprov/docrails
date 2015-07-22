@@ -240,6 +240,25 @@ article.status = "published"
 article.save!
 ```
 
+To add a new value before/after existing one you should use [ALTER TYPE](http://www.postgresql.org/docs/current/static/sql-altertype.html)
+```ruby
+# db/migrate/20150720144913_add_new_state_to_articles.rb
+execute <<-SQL
+  ALTER TYPE article_status ADD VALUE 'archived' AFTER 'published';
+SQL
+```
+NOTE: ALTER TYPE ... ADD VALUE cannot be executed inside of a transaction block. That means you should call this operation outside of the `change` or `up` methods.
+
+Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
+```sql
+SELECT n.nspname AS enum_schema,  
+       t.typname AS enum_name,  
+       e.enumlabel AS enum_value
+  FROM pg_type t 
+      JOIN pg_enum e ON t.oid = e.enumtypid  
+      JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+```
+
 ### UUID
 
 * [type definition](http://www.postgresql.org/docs/current/static/datatype-uuid.html)
